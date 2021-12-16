@@ -1,0 +1,20 @@
+{
+  "name": "yarn-plugin-gcp-auth",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "builder build plugin",
+    "local-install": "yarn plugin import ./bundles/@yarnpkg/plugin-gcp-auth.js",
+    "test": "yarn build && yarn local-install && yarn"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.14",
+    "@yarnpkg/builder": "^3.1.0",
+    "@yarnpkg/cli": "^3.1.1 ",
+    "@yarnpkg/core": "^3.1.0 ",
+    "@yarnpkg/plugin-npm": "^2.6.0 ",
+    "typescript": "^4.5.4"
+  },
+  "packageManager": "yarn@3.1.1"
+}
