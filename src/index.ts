@@ -1,7 +1,6 @@
 import {
   Configuration,
   ConfigurationDefinitionMap,
-  Hooks,
   httpUtils,
   miscUtils,
   Plugin,
@@ -74,7 +73,22 @@ async function getTokenInfo(token: string, configuration: Configuration): Promis
   return JSON.parse(res.toString());
 }
 
-const plugin: Plugin<Hooks & NpmHooks> = {
+async function refreshToken(configuration: Configuration): Promise<string> {
+  let token;
+  try {
+    token = await run('gcloud auth application-default print-access-token');
+  } catch (e) {
+    token = await run('gcloud auth print-access-token');
+  }
+  token = token.trim();
+  const { expires_in: expiresIn } = await getTokenInfo(token, configuration);
+  const expiresAt = Date.now() + expiresIn * 1000;
+  const newCache: Cache = { token, expiresAt };
+  await Configuration.updateHomeConfiguration({ gcpAccessToken: newCache });
+  return token;
+}
+
+const plugin: Plugin<NpmHooks> = {
   configuration,
   hooks: {
     async getNpmAuthenticationHeader(
@@ -88,16 +102,7 @@ const plugin: Plugin<Hooks & NpmHooks> = {
       const cache = configuration.get('gcpAccessToken');
       let token: string = cache.get('token');
       if (!token || cache.get('expiresAt') < Date.now() + 1000) {
-        try {
-          token = await run('gcloud auth application-default print-access-token');
-        } catch (e) {
-          token = await run('gcloud auth print-access-token');
-        }
-        token = token.trim();
-        const { expires_in: expiresIn } = await getTokenInfo(token, configuration);
-        const expiresAt = Date.now() + expiresIn * 1000;
-        const newCache: Cache = { token, expiresAt };
-        Configuration.updateHomeConfiguration({ gcpAccessToken: newCache });
+        token = await refreshToken(configuration);
       }
 
       return `Bearer ${token}`;
