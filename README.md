@@ -32,15 +32,20 @@ npmScopes:
     npmRegistryServer: "https://<location>-npm.pkg.dev/<org>/<repository>/"
 ```
 
+## Commands
+
+- `yarn gcp-auth refresh`: clears plugin cache and forces the plugin to fetch a new token.
+
+
 ## Notes
 
-The plugin will first try to fetch a token for your ADC and *then* your normal auth. To avoid this, log out of your ADC with `gcloud auth application-default revoke`.
+The plugin will first try to fetch a token for your ADC and *then* your normal auth. To avoid this, log out of your ADC with `gcloud auth application-default revoke` and run `yarn gcp-auth refresh` (see [Commands](#commands)).
 
-Also, tokens are being cached since v1.1.0, and will be used until they expire (usually up to an hour).
+Tokens are being cached since v1.1.0, and will be used until they expire (usually up to an hour) or until they're refreshed manually (see [Commands](#commands)).
 
 
 ### Credits
 
 Big shoutout to [FishandRichardsonPC](https://github.com/FishandRichardsonPC)
 who made a [similar plugin for azure](https://github.com/FishandRichardsonPC/yarn-plugin-az-cli-auth)
-from which I've copied the vast majority of the project.
+from which I've copied most of the structure for this project.

@@ -8,6 +8,7 @@ import {
 } from '@yarnpkg/core';
 import { Hooks as NpmHooks } from '@yarnpkg/plugin-npm';
 import { exec } from 'child_process';
+import { BaseCommand } from '@yarnpkg/cli';
 
 interface Cache {
   token: string | null;
@@ -108,6 +109,18 @@ const plugin: Plugin<NpmHooks> = {
       return `Bearer ${token}`;
     },
   },
+  commands: [
+    class RefreshCommand extends BaseCommand {
+      static paths = [['gcp-auth', 'refresh']];
+      async execute(): Promise<number | void> {
+        this.context.stdout.write('Discarding plugin cache...\n');
+        await Configuration.updateHomeConfiguration({ gcpAccessToken: {} });
+        this.context.stdout.write('Rebuilding...\n');
+        await refreshToken(await Configuration.find(this.context.cwd, this.context.plugins));
+        this.context.stdout.write('Done!\n');
+      }
+    },
+  ],
 };
 
 export default plugin;
