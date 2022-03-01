@@ -75,14 +75,23 @@ async function getTokenInfo(token: string, configuration: Configuration): Promis
 }
 
 async function refreshToken(configuration: Configuration): Promise<string> {
-  let token;
+  let token, expiresIn;
   try {
-    token = await run('gcloud auth application-default print-access-token');
+    // First check if we're in a GCP VM
+    ({ access_token: token, expires_in: expiresIn } = JSON.parse(
+      await run(
+        'curl -s "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google"'
+      )
+    ));
   } catch (e) {
-    token = await run('gcloud auth print-access-token');
+    try {
+      token = await run('gcloud auth application-default print-access-token');
+    } catch (e) {
+      token = await run('gcloud auth print-access-token');
+    }
+    ({ expires_in: expiresIn } = await getTokenInfo(token, configuration));
   }
   token = token.trim();
-  const { expires_in: expiresIn } = await getTokenInfo(token, configuration);
   const expiresAt = Date.now() + expiresIn * 1000;
   const newCache: Cache = { token, expiresAt };
   await Configuration.updateHomeConfiguration({ gcpAccessToken: newCache });

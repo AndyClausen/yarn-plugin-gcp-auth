@@ -39,7 +39,10 @@ npmScopes:
 
 ## Notes
 
-The plugin will first try to fetch a token for your ADC and *then* your normal auth. To avoid this, log out of your ADC with `gcloud auth application-default revoke` and run `yarn gcp-auth refresh` (see [Commands](#commands)).
+The plugin will first try to fetch a token from VM metadata (if you're running on gcp), then for your gcloud ADC, and *then* your normal gcloud auth.
+To avoid this, log out of your ADC with `gcloud auth application-default revoke` and run `yarn gcp-auth refresh` (see [Commands](#commands)).
+
+If you are using this plugin during a docker build in Google Cloud Build, you need to use `--network=cloudbuild` in your `.yaml` so the container has access to GCP's metadata server. Read more [here](https://cloud.google.com/build/docs/build-config-file-schema#network).
 
 Tokens are being cached since v1.1.0, and will be used until they expire (usually up to an hour) or until they're refreshed manually (see [Commands](#commands)).
 
