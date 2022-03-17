@@ -5,9 +5,9 @@ import {
   miscUtils,
   Plugin,
   SettingsType,
+  execUtils,
 } from '@yarnpkg/core';
 import { Hooks as NpmHooks } from '@yarnpkg/plugin-npm';
-import { exec } from 'child_process';
 import { BaseCommand } from '@yarnpkg/cli';
 
 interface Cache {
@@ -51,16 +51,6 @@ const configuration: Partial<ConfigurationDefinitionMap> = {
   },
 };
 
-function run(cmd: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) return reject(error);
-      if (stderr) return reject(new Error(stderr));
-      resolve(stdout);
-    });
-  });
-}
-
 async function getTokenInfo(token: string, configuration: Configuration): Promise<TokenInfo> {
   const res = await httpUtils.post(
     'https://www.googleapis.com/oauth2/v1/tokeninfo',
@@ -76,19 +66,39 @@ async function getTokenInfo(token: string, configuration: Configuration): Promis
 
 async function refreshToken(configuration: Configuration): Promise<string> {
   let token, expiresIn;
+
+  async function gcloud(args: string[]): Promise<string> {
+    const { stdout } = await execUtils.execvp('gcloud', args, {
+      cwd: configuration.projectCwd,
+      encoding: 'utf-8',
+    });
+
+    return stdout;
+  }
+
   try {
     // First check if we're in a GCP VM
-    ({ access_token: token, expires_in: expiresIn } = JSON.parse(
-      await run(
-        'curl -s "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google"'
-      )
-    ));
-  } catch (e) {
+    // Use `httpUtils.request` instead of `httpUtils.get` to avoid caching.
+    const res = await httpUtils.request(
+      'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+      null,
+      {
+        configuration,
+        headers: {
+          'Metadata-Flavor': 'Google',
+        },
+        jsonResponse: true,
+      }
+    );
+
+    ({ access_token: token, expires_in: expiresIn } = res.body);
+  } catch {
     try {
-      token = await run('gcloud auth application-default print-access-token');
-    } catch (e) {
-      token = await run('gcloud auth print-access-token');
+      token = await gcloud(['auth', 'application-default', 'print-access-token']);
+    } catch {
+      token = await gcloud(['auth', 'print-access-token']);
     }
+
     ({ expires_in: expiresIn } = await getTokenInfo(token, configuration));
   }
   token = token.trim();
