@@ -30,6 +30,10 @@ npmScopes:
     npmAlwaysAuth: true
     npmPublishRegistry: "https://<location>-npm.pkg.dev/<org>/<repository>/"
     npmRegistryServer: "https://<location>-npm.pkg.dev/<org>/<repository>/"
+
+# Optional, only used for running/building on GCP VMs
+unsafeHttpWhitelist:
+  - metadata.google.internal
 ```
 
 ## Commands
@@ -43,6 +47,7 @@ The plugin will first try to fetch a token from VM metadata (if you're running o
 To avoid this, log out of your ADC with `gcloud auth application-default revoke` and run `yarn gcp-auth refresh` (see [Commands](#commands)).
 
 If you are using this plugin during a docker build in Google Cloud Build, you need to use `--network=cloudbuild` in your `.yaml` so the container has access to GCP's metadata server. Read more [here](https://cloud.google.com/build/docs/build-config-file-schema#network).
+You will also need to whitelist the metadata url as shown in the .yarnrc.yml example [here](#per-project-setup).
 
 Tokens are being cached since v1.1.0, and will be used until they expire (usually up to an hour) or until they're refreshed manually (see [Commands](#commands)).
 
