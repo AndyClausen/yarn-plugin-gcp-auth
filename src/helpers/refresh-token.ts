@@ -4,7 +4,7 @@ import { TokenCache } from '../types/token-cache';
 import { gcloud } from './gcloud';
 
 export async function refreshToken(configuration: Configuration): Promise<string> {
-  let token, expiresIn;
+  let token: string, expiresIn: number;
 
   try {
     // First check if we're in a GCP VM
@@ -22,6 +22,7 @@ export async function refreshToken(configuration: Configuration): Promise<string
     );
 
     ({ access_token: token, expires_in: expiresIn } = res.body);
+    token = token.trim();
   } catch {
     try {
       token = await gcloud(configuration, 'auth', 'application-default', 'print-access-token');
@@ -29,9 +30,14 @@ export async function refreshToken(configuration: Configuration): Promise<string
       token = await gcloud(configuration, 'auth', 'print-access-token');
     }
 
+    token = token
+      .trim()
+      .split('\n')
+      .filter((s) => s && s !== '')
+      .pop();
+
     ({ expires_in: expiresIn } = await getTokenInfo(configuration, token));
   }
-  token = token.trim();
   const expiresAt = Date.now() + expiresIn * 1000;
   const newCache: TokenCache = { token, expiresAt };
   await Configuration.updateHomeConfiguration({ gcpAccessToken: newCache });
