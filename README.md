@@ -51,6 +51,22 @@ You will also need to whitelist the metadata url as shown in the .yarnrc.yml exa
 
 Tokens are being cached since v1.1.0, and will be used until they expire (usually up to an hour) or until they're refreshed manually (see [Commands](#commands)).
 
+## Local docker build
+
+You probably won't have `gcloud` installed in your docker container, so as a workaround for testing local builds, you can pass your access token in to use as an environment variable.
+
+> This should not be used in production, as it may bake your access token into your docker image.
+
+```sh
+docker build --tag my-image --build-arg ACCESS_TOKEN=$(gcloud auth application-default print-access-token) .
+```
+
+```Dockerfile
+# in your build stage
+ARG ACCESS_TOKEN
+ENV ACCESS_TOKEN=$ACCESS_TOKEN
+RUN yarn
+```
 
 ### Credits
 
