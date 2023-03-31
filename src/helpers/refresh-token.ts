@@ -24,10 +24,15 @@ export async function refreshToken(configuration: Configuration): Promise<string
     ({ access_token: token, expires_in: expiresIn } = res.body);
     token = token.trim();
   } catch {
-    try {
-      token = await gcloud(configuration, 'auth', 'application-default', 'print-access-token');
-    } catch {
-      token = await gcloud(configuration, 'auth', 'print-access-token');
+    if (process.env.ACCESS_TOKEN) {
+      token = process.env.ACCESS_TOKEN;
+    } else {
+
+      try {
+        token = await gcloud(configuration, 'auth', 'application-default', 'print-access-token');
+      } catch {
+        token = await gcloud(configuration, 'auth', 'print-access-token');
+      }
     }
 
     token = token
