@@ -9,15 +9,15 @@
     "test": "yarn build && yarn local-install && yarn"
   },
   "dependencies": {
-    "@types/node": "^17.0.27",
-    "@yarnpkg/builder": "~3.2.0",
-    "@yarnpkg/cli": "~3.2.0",
-    "@yarnpkg/core": "~3.2.0",
-    "@yarnpkg/plugin-npm": "~2.7.0"
+    "@yarnpkg/builder": "3.3.0",
+    "@yarnpkg/cli": "3.6.0",
+    "@yarnpkg/core": "3.5.2",
+    "@yarnpkg/plugin-npm": "2.7.4"
   },
   "devDependencies": {
-    "prettier": "~2.6.2",
-    "typescript": "^4.6.3"
+    "@types/node": "20.3.1",
+    "prettier": "2.8.8",
+    "typescript": "5.1.3"
   },
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.6.0"
 }
