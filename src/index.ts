@@ -66,6 +66,14 @@ const plugin: Plugin<NpmHooks> = {
         this.context.stdout.write('Done!\n');
       }
     },
+    class LogoutCommand extends BaseCommand {
+      static paths = [['gcp-auth', 'logout']];
+      async execute(): Promise<number | void> {
+        this.context.stdout.write('Removing cached GCP Access Token...\n');
+        await Configuration.updateHomeConfiguration({ gcpAccessToken: {} });
+        this.context.stdout.write('Done!\n');
+      }
+    },
   ],
 };
 

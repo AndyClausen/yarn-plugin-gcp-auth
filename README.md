@@ -39,6 +39,7 @@ unsafeHttpWhitelist:
 ## Commands
 
 - `yarn gcp-auth refresh`: clears plugin cache and forces the plugin to fetch a new token.
+- `yarn gcp-auth logout`: clears plugin cache, helps ensured no token left in the system.
 
 
 ## Notes
@@ -65,6 +66,18 @@ docker build --tag my-image --build-arg ACCESS_TOKEN=$(gcloud auth application-d
 # in your build stage
 ARG ACCESS_TOKEN
 RUN yarn
+```
+
+> Advanced non-local setup would be to use [docker build secrets](https://docs.docker.com/build/building/secrets/#secret-mounts) instead:
+```sh
+gcp_token=$(gcloud auth application-default print-access-token) docker build --tag my-image --secret id=gcp_token  .
+```
+
+```Dockerfile
+# in your build stage read secret into environment variable, install packages and logout in same layer:
+RUN --mount=type=secret,id=gcp_token \
+    ACCESS_TOKEN=$(cat /run/secrets/gcp_token) yarn \
+    && yarn logout
 ```
 
 ### Credits
