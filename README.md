@@ -31,9 +31,10 @@ npmScopes:
     npmPublishRegistry: "https://<location>-npm.pkg.dev/<org>/<repository>/"
     npmRegistryServer: "https://<location>-npm.pkg.dev/<org>/<repository>/"
 
-# Optional, only used for running/building on GCP VMs
+# Optional, only used for running/building on GCP VMs, or if providing custom (proxy or emulator) host as metadata source.
 unsafeHttpWhitelist:
-  - metadata.google.internal
+  - ${GCE_METADATA_HOST:-metadata.google.internal}
+
 ```
 
 ## Commands
@@ -43,7 +44,7 @@ unsafeHttpWhitelist:
 
 ## Notes
 
-The plugin will first try to fetch a token from VM metadata (if you're running on gcp), then for your gcloud ADC, and *then* your normal gcloud auth.
+The plugin will first try to fetch a token from VM metadata (using default host `metadata.google.internal` if you're running on gcp, alternate metadata host can be provided via [GCE_METADATA_HOST](https://cloud.google.com/nodejs/docs/reference/gcp-metadata/latest#environment-variables) environment variable), then for your gcloud ADC, and *then* your normal gcloud auth.
 To avoid this, log out of your ADC with `gcloud auth application-default revoke` and run `yarn gcp-auth refresh` (see [Commands](#commands)).
 
 If you are using this plugin during a docker build in Google Cloud Build, you need to use `--network=cloudbuild` in your `.yaml` so the container has access to GCP's metadata server. Read more [here](https://cloud.google.com/build/docs/build-config-file-schema#network).
