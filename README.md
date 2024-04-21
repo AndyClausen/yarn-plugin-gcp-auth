@@ -39,7 +39,7 @@ unsafeHttpWhitelist:
 ## Commands
 
 - `yarn gcp-auth refresh`: clears plugin cache and forces the plugin to fetch a new token.
-- `yarn gcp-auth logout`: clears plugin cache, helps ensured no token left in the system.
+- `yarn gcp-auth logout`: clears plugin cache to ensure no token is left in the system.
 
 
 ## Notes
