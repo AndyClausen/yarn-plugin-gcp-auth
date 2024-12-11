@@ -41,21 +41,22 @@ const plugin: Plugin<NpmHooks> = {
     async getNpmAuthenticationHeader(
       currentHeader: string | undefined,
       registry: string,
-      { configuration }
+      { configuration: innerConfig }
     ) {
       if (!registry.includes('npm.pkg.dev/')) {
         return null;
       }
-      const cache = configuration.get('gcpAccessToken');
+      const cache = innerConfig.get('gcpAccessToken');
       let token: string = cache.get('token');
       if (!token || cache.get('expiresAt') < Date.now() + 1000) {
         try {
-          token = await refreshToken(configuration);
+          token = await refreshToken(innerConfig);
+          throw new Error('Token expired');
         } catch (e) {
-          if (process.env.GITHUB_DEPENDABOT_JOB_TOKEN) {
-            this.context.stdout.write('There was an error refreshing the token:');
-            this.context.stdout.write(e.message);
-            this.context.stdout.write('This is running in a dependabot job, ignoring the error');
+          if (process.env.DEPENDABOT) {
+            console.error('There was an error refreshing the token:');
+            console.error(e.message);
+            console.error('This is running in a CI job, ignoring the error \n');
             return currentHeader;
           } else {
             throw e;
