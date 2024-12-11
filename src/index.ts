@@ -49,7 +49,18 @@ const plugin: Plugin<NpmHooks> = {
       const cache = configuration.get('gcpAccessToken');
       let token: string = cache.get('token');
       if (!token || cache.get('expiresAt') < Date.now() + 1000) {
-        token = await refreshToken(configuration);
+        try {
+          token = await refreshToken(configuration);
+        } catch (e) {
+          if (process.env.GITHUB_DEPENDABOT_JOB_TOKEN) {
+            this.context.stdout.write('There was an error refreshing the token:');
+            this.context.stdout.write(e.message);
+            this.context.stdout.write('This is running in a dependabot job, ignoring the error');
+            return currentHeader;
+          } else {
+            throw e;
+          }
+        }
       }
 
       return `Bearer ${token}`;
