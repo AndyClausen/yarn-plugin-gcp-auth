@@ -46,6 +46,12 @@ const plugin: Plugin<NpmHooks> = {
       if (!registry.includes('npm.pkg.dev/')) {
         return null;
       }
+
+      if (process.env.DEPENDABOT) {
+        console.warn('Dependabot detected, skipping GCP authentication');
+        return currentHeader;
+      }
+
       const cache = configuration.get('gcpAccessToken');
       let token: string = cache.get('token');
       if (!token || cache.get('expiresAt') < Date.now() + 1000) {
